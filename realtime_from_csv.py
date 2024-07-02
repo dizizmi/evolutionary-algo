@@ -30,6 +30,8 @@ def main(csv_file):
     # load it into the sim
     rob1 = p.loadURDF('test.urdf')
     # air drop it
+
+ 
     p.resetBasePositionAndOrientation(rob1, [0, 0, 2.5], [0, 0, 0, 1])
     start_pos, orn = p.getBasePositionAndOrientation(rob1)
 
@@ -38,6 +40,9 @@ def main(csv_file):
     wait_time = 1.0/240 # seconds
     total_time = 30 # seconds
     step = 0
+
+
+
     while True:
         p.stepSimulation()
         step += 1
