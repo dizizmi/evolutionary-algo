@@ -10,6 +10,7 @@ import simulation
 import genome 
 import creature 
 import numpy as np
+import csv
 
 class TestGA(unittest.TestCase):
     def testBasicGA(self):
@@ -18,7 +19,10 @@ class TestGA(unittest.TestCase):
         #sim = simulation.ThreadedSim(pool_size=1)
         sim = simulation.Simulation()
 
-        for iteration in range(1000):
+        results = []
+        elites = []
+
+        for iteration in range(100):
             # this is a non-threaded version 
             # where we just call run_creature instead
             # of eval_population
@@ -58,7 +62,47 @@ class TestGA(unittest.TestCase):
                     break
             
             pop.creatures = new_creatures
-                            
-        self.assertNotEqual(fits[0], 0)
+
+            results.append([iteration, np.max(fits), np.mean(fits), np.mean(links), np.max(links)])
+
+            #assert that first fitness is not 0
+            self.assertNotEqual(fits[0], 0)
+
+        with open('experiment_results.csv', mode='w', newline='') as file:
+            writer = csv.writer(file)
+            writer.writerow(["Iteration", "Max Fitness", "Mean Fitness", "Mean Links", "Max Links"])
+            writer.writerows(results)
+
+        # Save all elite genomes to a single CSV file
+        with open('all_elites.csv', mode='w', newline='') as elite_file:
+            elite_writer = csv.writer(elite_file)
+            for elite in elites:
+                iteration, dna = elite
+                elite_writer.writerow([iteration] + dna)
+
+        return results
+
+    
+    def testBasicGA2(self):
+        experiments = [
+            {"pop_size": 10, "gene_count": 3, "point_mutate_rate": 0.1, "shrink_mutate_rate": 0.25, "grow_mutate_rate": 0.1},
+            {"pop_size": 20, "gene_count": 4, "point_mutate_rate": 0.2, "shrink_mutate_rate": 0.2, "grow_mutate_rate": 0.2},
+        ]
+        
+
+        with open('experiment_results.csv', mode='w', newline='') as file:
+            writer = csv.writer(file)
+            writer.writerow(["Experiment", "Iteration", "Max Fitness", "Mean Fitness", "Mean Links", "Max Links"])
+            
+            for idx, params in enumerate(experiments):
+                results = self.run_experiment(
+                    pop_size=params["pop_size"],
+                    gene_count=params["gene_count"],
+                    point_mutate_rate=params["point_mutate_rate"],
+                    shrink_mutate_rate=params["shrink_mutate_rate"],
+                    grow_mutate_rate=params["grow_mutate_rate"]
+                )
+                for result in results:
+                    writer.writerow([idx] + result)
 
 unittest.main()
