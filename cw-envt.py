@@ -111,6 +111,9 @@ def main():
         #check if creature exist and reaches base of mountain
         if rob1 is not None:
             pos, _ = p.getBasePositionAndOrientation(rob1)
+            if pos is None:
+                print("Failed to get into position")
+                continue
             if pos[2] <= mountain_position[2] + 1.0:
                 update_motors_at_base(rob1, cr)
 
@@ -126,7 +129,7 @@ def update_motors_at_base(rob1, cr):
 
 def apply_movement_logic(rob1, cr):
     dt = 1.0 / 240
-    timescale = 0.5  # Adjust based on the desired movement timescale
+    timescale = 0.5
     del_time = dt / timescale
     if del_time > 1.0:
         del_time = 1.0
@@ -138,7 +141,7 @@ def apply_movement_logic(rob1, cr):
 
 
     #prevent creature from moving erratically
-    max_speed = 1.0  # Adjust as needed
+    max_speed = 1.0 
     speed = np.linalg.norm(new_linear_velocity)
     if speed > max_speed:
         new_linear_velocity = new_linear_velocity / speed * max_speed
@@ -155,7 +158,7 @@ def apply_movement_logic(rob1, cr):
     if tangential_speed > MIN_ROLLING_LINEAR_SPEED:
         roll_axis = np.cross(ground_normal, tangential_velocity)
         roll_axis = roll_axis / np.linalg.norm(roll_axis)
-        angular_speed = tangential_speed / 0.1  # Example rolling radius, adjust as needed
+        angular_speed = tangential_speed / 0.1  # Example rolling radius
         new_angular_velocity = angular_speed * roll_axis
 
     #prevent from spinning too much
