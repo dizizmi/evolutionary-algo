@@ -111,9 +111,7 @@ def main():
         #check if creature exist and reaches base of mountain
         if rob1 is not None:
             pos, _ = p.getBasePositionAndOrientation(rob1)
-            if pos is None:
-                print("Failed to get into position")
-                continue
+            
             if pos[2] <= mountain_position[2] + 1.0:
                 update_motors_at_base(rob1, cr)
 
