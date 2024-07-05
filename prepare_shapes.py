@@ -107,7 +107,7 @@ def gaussian(x, y, sigma):
     """Return the height of the shape at position (x, y) using a Gaussian function."""
     return math.exp(-((x**2 + y**2) / (2 * sigma**2)))
 
-def generate_gaussian_pyramid(filename, size=10, resolution=0.5, sigma=3):
+def generate_gaussian_pyramid(filename, size=10, resolution=0.1, sigma=3):
     vertices = []
     faces = []
 
@@ -146,7 +146,7 @@ def gaussian2(x, y, sigma, height):
     """Return the height of the shape at position (x, y) using a Gaussian function."""
     return height * math.exp(-((x**2 + y**2) / (2 * sigma**2)))
 
-def generate_gaussian_pyramid2(filename, size=10, resolution=0.5, sigma=3, height=5):
+def generate_gaussian_pyramid2(filename, size=10, resolution=0.1, sigma=3, height=5):
     vertices = []
     faces = []
 
@@ -198,12 +198,13 @@ def generate_gaussian_pyramid2(filename, size=10, resolution=0.5, sigma=3, heigh
             f.write(f"f {face[0]+1} {face[1]+1} {face[2]+1}\n")
 
 
-def generate_gaussian_pyramid3(filename, size=10, resolution=0.5, sigma=3, height=5, noise_scale=0.5, noise_factor=1.0):
+def generate_gaussian_pyramid3(filename, size=10, resolution=0.1, sigma=3, height=5, noise_scale=0.5, noise_factor=1.0):
     """
     pyramid with noise
     """
     vertices = []
     faces = []
+    
 
     # Generate vertices using the Gaussian function for the pyramid
     for i in range(int(size / resolution)):
@@ -259,22 +260,23 @@ def generate_gaussian_pyramid3(filename, size=10, resolution=0.5, sigma=3, heigh
 
 
 
-def generate_gaussian_pyramid4(filename, size=10, resolution=0.5, sigma=3, height=5, noise_scale=0.5, noise_factor=1.0):
+def generate_gaussian_pyramid4(filename, size=10, resolution=0.1, sigma=3, height=5, noise_scale=0.2, noise_factor=1.0):
     vertices = []
     faces = []
 
+    num_points = int(size / resolution)
+
     # Generate vertices using the Gaussian function for the top surface of the pyramid
-    for i in range(int(size / resolution)):
-        for j in range(int(size / resolution)):
-            x = -size/2 + i * resolution
-            y = -size/2 + j * resolution
-            z = gaussian2(x, y, sigma, height)
+    for i in range(num_points):
+        for j in range(num_points):
+            x = -size / 2 + i * resolution
+            y = -size / 2 + j * resolution
+            z = gaussian(x, y, sigma, height)
 
             # Add Perlin noise to the z-coordinate
             z += pnoise2(x * noise_scale, y * noise_scale) * noise_factor
 
             vertices.append([x, y, z])
-
     # Generate vertices for the bottom surface (flat base) of the pyramid
     for i in range(int(size / resolution)):
         for j in range(int(size / resolution)):
@@ -284,35 +286,35 @@ def generate_gaussian_pyramid4(filename, size=10, resolution=0.5, sigma=3, heigh
             vertices.append([x, y, z])
 
     # Generate faces for the top surface
-    for i in range(int(size / resolution) - 1):
-        for j in range(int(size / resolution) - 1):
-            bottom_left = i * int(size / resolution) + j
-            bottom_right = i * int(size / resolution) + j + 1
-            top_left = (i + 1) * int(size / resolution) + j
-            top_right = (i + 1) * int(size / resolution) + j + 1
+    for i in range(num_points - 1):
+        for j in range(num_points - 1):
+            bottom_left = i * num_points + j
+            bottom_right = i * num_points + j + 1
+            top_left = (i + 1) * num_points + j
+            top_right = (i + 1) * num_points + j + 1
 
             faces.append([bottom_left, bottom_right, top_left])
             faces.append([top_left, bottom_right, top_right])
 
     # Generate faces for the bottom surface
-    base_offset = int(size / resolution) * int(size / resolution)
-    for i in range(int(size / resolution) - 1):
-        for j in range(int(size / resolution) - 1):
-            bottom_left_base = base_offset + i * int(size / resolution) + j
-            bottom_right_base = base_offset + i * int(size / resolution) + j + 1
-            top_left_base = base_offset + (i + 1) * int(size / resolution) + j
-            top_right_base = base_offset + (i + 1) * int(size / resolution) + j + 1
+    base_offset = num_points * num_points
+    for i in range(num_points - 1):
+        for j in range(num_points - 1):
+            bottom_left_base = base_offset + i * num_points + j
+            bottom_right_base = base_offset + i * num_points + j + 1
+            top_left_base = base_offset + (i + 1) * num_points + j
+            top_right_base = base_offset + (i + 1) * num_points + j + 1
 
             faces.append([bottom_left_base, top_left_base, bottom_right_base])
             faces.append([top_left_base, top_right_base, bottom_right_base])
 
     # Generate faces for the sides
-    for i in range(int(size / resolution) - 1):
-        for j in range(int(size / resolution)):
-            top = i * int(size / resolution) + j
-            bottom = base_offset + i * int(size / resolution) + j
-            top_next = (i + 1) * int(size / resolution) + j
-            bottom_next = base_offset + (i + 1) * int(size / resolution) + j
+    for i in range(num_points - 1):
+        for j in range(num_points):
+            top = i * num_points + j
+            bottom = base_offset + i * num_points + j
+            top_next = (i + 1) * num_points + j
+            bottom_next = base_offset + (i + 1) * num_points + j
 
             faces.append([top, bottom, top_next])
             faces.append([top_next, bottom, bottom_next])

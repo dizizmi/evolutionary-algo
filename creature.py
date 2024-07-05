@@ -32,9 +32,13 @@ class Motor:
         return output 
 
 class Creature:
-    def __init__(self, gene_count):
+    def __init__(self, gene_count, fixed_dna=None):
         self.spec = genome.Genome.get_gene_spec()
-        self.dna = genome.Genome.get_random_genome(len(self.spec), gene_count)
+        #fixed character
+        if fixed_dna:
+            self.dna = fixed_dna
+        else:
+            self.dna = genome.Genome.get_random_genome(len(self.spec), gene_count)
         self.flat_links = None
         self.exp_links = None
         self.motors = None
@@ -100,6 +104,12 @@ class Creature:
         p2 = np.asarray(self.last_position)
         dist = np.linalg.norm(p1-p2)
         return dist 
+
+    def set_fitness_score(self, fitness_score):
+        self.fitness_score = fitness_score
+    
+    def get_fitness_score(self):
+        return self.fitness_score
 
     def update_dna(self, dna):
         self.dna = dna
