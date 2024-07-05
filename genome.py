@@ -1,6 +1,7 @@
 import numpy as np
 import copy 
 import random
+from xml.dom.minidom import Document
 
 class Genome():
     @staticmethod 
@@ -195,8 +196,11 @@ class URDFLink:
                 joint_origin_xyz_2=0.1,
                 joint_origin_xyz_3=0.1,
                 control_waveform=0.1,
-                control_amp=0.1,
-                control_freq=0.1):
+                control_amp=1,
+                control_freq=1,
+                leg_length=0.05,
+                leg_radius=0.05,  
+                num_legs=4):
         self.name = name
         self.parent_name = parent_name
         self.recur = recur 
@@ -215,6 +219,9 @@ class URDFLink:
         self.control_waveform=control_waveform
         self.control_amp=control_amp
         self.control_freq=control_freq
+        self.leg_length = leg_length
+        self.leg_radius = leg_radius
+        self.num_legs = num_legs
         self.sibling_ind = 1
 
     def to_link_element(self, adom):
@@ -280,8 +287,56 @@ class URDFLink:
         link_tag.appendChild(vis_tag)
         link_tag.appendChild(coll_tag)
         link_tag.appendChild(inertial_tag)
+
+        for i in range(self.num_legs):
+            leg_tag = self.create_leg_element(adom, i)
+            link_tag.appendChild(leg_tag)
         
         return link_tag
+    
+    def create_leg_element(self, adom, index):
+        leg_name = f"{self.name}_leg_{index}"
+        leg_tag = adom.createElement("link")
+        leg_tag.setAttribute("name", leg_name)
+
+        # Visual
+        vis_tag = adom.createElement("visual")
+        geom_tag = adom.createElement("geometry")
+        cyl_tag = adom.createElement("cylinder")
+        cyl_tag.setAttribute("length", str(self.leg_length))
+        cyl_tag.setAttribute("radius", str(self.leg_radius))
+        geom_tag.appendChild(cyl_tag)
+        vis_tag.appendChild(geom_tag)
+
+        # Collision
+        coll_tag = adom.createElement("collision")
+        c_geom_tag = adom.createElement("geometry")
+        c_cyl_tag = adom.createElement("cylinder")
+        c_cyl_tag.setAttribute("length", str(self.leg_length))
+        c_cyl_tag.setAttribute("radius", str(self.leg_radius))
+        c_geom_tag.appendChild(c_cyl_tag)
+        coll_tag.appendChild(c_geom_tag)
+
+        # Inertial
+        inertial_tag = adom.createElement("inertial")
+        mass_tag = adom.createElement("mass")
+        mass = np.pi * (self.leg_radius * self.leg_radius) * self.leg_length
+        mass_tag.setAttribute("value", str(mass))
+        inertia_tag = adom.createElement("inertia")
+        inertia_tag.setAttribute("ixx", "0.01")
+        inertia_tag.setAttribute("iyy", "0.01")
+        inertia_tag.setAttribute("izz", "0.01")
+        inertia_tag.setAttribute("ixy", "0")
+        inertia_tag.setAttribute("ixz", "0")
+        inertia_tag.setAttribute("iyz", "0")
+        inertial_tag.appendChild(mass_tag)
+        inertial_tag.appendChild(inertia_tag)
+
+        leg_tag.appendChild(vis_tag)
+        leg_tag.appendChild(coll_tag)
+        leg_tag.appendChild(inertial_tag)
+
+        return leg_tag
 
     def to_joint_element(self, adom):
         #           <joint name="base_to_sub2" type="revolute">
@@ -330,8 +385,49 @@ class URDFLink:
         joint_tag.appendChild(axis_tag)
         joint_tag.appendChild(limit_tag)
         joint_tag.appendChild(orig_tag)
-        return joint_tag
-            
 
+        for i in range(self.num_legs):
+            leg_joint_tag = self.create_leg_joint_element(adom, i)
+            joint_tag.appendChild(leg_joint_tag)
+
+
+        return joint_tag
+    
+    def create_leg_joint_element(self, adom, index):
+        leg_name = f"{self.name}_leg_{index}"
+        joint_tag = adom.createElement("joint")
+        joint_tag.setAttribute("name", leg_name + "_joint")
+        joint_tag.setAttribute("type", "revolute")
+
+        parent_tag = adom.createElement("parent")
+        parent_tag.setAttribute("link", self.name)
+        child_tag = adom.createElement("child")
+        child_tag.setAttribute("link", leg_name)
+
+        axis_tag = adom.createElement("axis")
+        axis_tag.setAttribute("xyz", "0 1 0")
+
+        limit_tag = adom.createElement("limit")
+        limit_tag.setAttribute("effort", "1")
+        limit_tag.setAttribute("upper", "-3.1415")
+        limit_tag.setAttribute("lower", "3.1415")
+        limit_tag.setAttribute("velocity", "1")
+
+        orig_tag = adom.createElement("origin")
+        orig_tag.setAttribute("rpy", "0 0 0")
+        orig_tag.setAttribute("xyz", "0 0 " + str(-self.link_radius))
+
+        joint_tag.appendChild(parent_tag)
+        joint_tag.appendChild(child_tag)
+        
+        return joint_tag
+
+
+
+
+
+
+
+            
 
 

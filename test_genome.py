@@ -3,6 +3,8 @@ import unittest
 import genome
 import numpy as np
 import os
+import creature
+import csv
 
 class GenomeTest (unittest.TestCase):
     def testClassExists(self):
