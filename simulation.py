@@ -1,5 +1,9 @@
 import pybullet as p
+import time
+import pybullet_data
+import numpy as np
 from multiprocessing import Pool
+import math
 
 class Simulation: 
     def __init__(self, sim_id=0):
@@ -22,8 +26,7 @@ class Simulation:
         
         cid = p.loadURDF(xml_file, physicsClientId=pid)
 
-        p.resetBasePositionAndOrientation(cid, [0, 0, 2.5], [0, 0, 0, 1], physicsClientId=pid)
-
+        # p.resetBasePositionAndOrientation(cid, [0, 0, 2.5], [0, 0, 0, 1], physicsClientId=pid
 
         for step in range(iterations):
             p.stepSimulation(physicsClientId=pid)
@@ -35,21 +38,44 @@ class Simulation:
             #print(pos[2])
             #print(cr.get_distance_travelled())
         
-    
+    #when creature at base of mountain
     def update_motors(self, cid, cr):
         """
         cid is the id in the physics engine
         cr is a creature object
         """
-        for jid in range(p.getNumJoints(cid,
-                                        physicsClientId=self.physicsClientId)):
-            m = cr.get_motors()[jid]
+        pos, orn = p.getBasePositionAndOrientation(cid, physicsClientId=self.physicsClientId)
+        x, y, z = pos
+
+        base_of_mountain_radius = 1.0  # Define the radius of the base of the mountain
+        mountain_center = (0, 0)  # Assume the mountain is centered at (0, 0)
+
+        distance_to_center = math.sqrt((x - mountain_center[0])**2 + (y - mountain_center[1])**2)
+
+        if distance_to_center <= base_of_mountain_radius and z < 0.5:  # Check if at the base of the mountain
+            motor_speed = 0.1  # Reduced speed at the base of the mountain
+        else:
+            motor_speed = 0.5  # Normal speed
+
+        #more motor controls
+        if z > 1.0:  # If the creature is high above the ground
+            motor_speed = 0.8
+
+        if x > 0.5:  # If the creature is on the positive side of the x-axis
+            motor_speed = 0.3
+
+
+        for jid in range(p.getNumJoints(cid, physicsClientId=self.physicsClientId)):
+            if jid % 2 == 0:
+                target_position = motor_speed * np.sin(time.time() * 1.0)
+            else:
+                target_position = -motor_speed * np.sin(time.time() * 1.0)
 
             p.setJointMotorControl2(cid, jid, 
-                    controlMode=p.VELOCITY_CONTROL, 
-                    targetVelocity=m.get_output(), 
-                    force = 5, 
-                    physicsClientId=self.physicsClientId)
+                controlMode=p.POSITION_CONTROL, 
+                targetVelocity=target_position, 
+                force=5, 
+                physicsClientId=self.physicsClientId)
         
 
     # You can add this to the Simulation class:
