@@ -72,8 +72,6 @@ def create_environment():
     mountain_position = (0, 0, -1) 
     mountain_orientation = p.getQuaternionFromEuler((0, 0, 0))
     p.setAdditionalSearchPath('shapes/')
-    # mountain = p.loadURDF("mountain.urdf", mountain_position, mountain_orientation, useFixedBase=1)
-    # mountain = p.loadURDF("mountain_with_cubes.urdf", mountain_position, mountain_orientation, useFixedBase=1)
 
     mountain = p.loadURDF("gaussian_pyramid.urdf", mountain_position, mountain_orientation, useFixedBase=1)
 
@@ -81,6 +79,7 @@ def create_environment():
 
 def run_creature_simulation(simulation, cr, iterations=2400):
     simulation.run_creature(cr, iterations)
+    
 
 def main():
     #initialize sim
@@ -96,13 +95,14 @@ def main():
     # load it into the sim
     rob1 = p.loadURDF('test.urdf', (0, 8, 5))
 
+    #test error
     if rob1 < 0:
         print("Error loading robot")
         return
 
     p.setRealTimeSimulation(1)
 
-    #delay time to let simu initialize
+    #delay time to let sim initialize cuz it's slow
     time.sleep(1.0)
 
     while True:
@@ -121,7 +121,7 @@ def main():
 
 def update_motors_at_base(rob1, cr):
     for jid in range(p.getNumJoints(rob1)):
-        # Example: Stop motors or change control strategy
+        # Stop motors or change control strategy
         p.setJointMotorControl2(rob1, jid, controlMode=p.POSITION_CONTROL, targetVelocity=0.0, force=5)
 
 
@@ -133,7 +133,7 @@ def apply_movement_logic(rob1, cr):
         del_time = 1.0
 
     # Get current and target velocities
-    target_linear_velocity = np.array([0.0, 0.0, 0.5])  # Example target to move up
+    target_linear_velocity = np.array([0.0, 0.0, 0.5])  #target to move up
     linear_velocity = np.array(p.getBaseVelocity(rob1)[0])
     new_linear_velocity = (1.0 - del_time) * linear_velocity + del_time * target_linear_velocity
 
@@ -148,7 +148,7 @@ def apply_movement_logic(rob1, cr):
     p.resetBaseVelocity(rob1, linearVelocity=new_linear_velocity.tolist())
 
       # Calculate and set angular velocity
-    ground_normal = np.array([0.0, 0.0, 1.0])  # Simplification, replace with actual surface normal
+    ground_normal = np.array([0.0, 0.0, 1.0])  #this is vector of flat ground in 3D
     tangential_velocity = new_linear_velocity - np.dot(new_linear_velocity, ground_normal) * ground_normal
     tangential_speed = np.linalg.norm(tangential_velocity)
     MIN_ROLLING_LINEAR_SPEED = 0.01
@@ -156,7 +156,7 @@ def apply_movement_logic(rob1, cr):
     if tangential_speed > MIN_ROLLING_LINEAR_SPEED:
         roll_axis = np.cross(ground_normal, tangential_velocity)
         roll_axis = roll_axis / np.linalg.norm(roll_axis)
-        angular_speed = tangential_speed / 0.1  # Example rolling radius
+        angular_speed = tangential_speed / 0.1  #rolling radius
         new_angular_velocity = angular_speed * roll_axis
 
     #prevent from spinning too much
