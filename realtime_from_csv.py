@@ -41,6 +41,8 @@ def main(csv_file):
     total_time = 30 # seconds
     step = 0
 
+    intial_height = start_pos[2]
+    max_height_reached = intial_height
 
 
     while True:
@@ -59,7 +61,13 @@ def main(csv_file):
             new_pos, orn = p.getBasePositionAndOrientation(rob1)
             #print(new_pos)
             dist_moved = np.linalg.norm(np.asarray(start_pos) - np.asarray(new_pos))
+
+            if new_pos[2] > max_height_reached:
+                max_height_reached = new_pos[2]
+
             print(dist_moved)
+            fitness_score = max_height_reached - intial_height
+            print("Fitness Score: ", fitness_score)
         time.sleep(wait_time)
         elapsed_time += wait_time
         if elapsed_time > total_time:
