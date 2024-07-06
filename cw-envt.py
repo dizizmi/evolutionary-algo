@@ -6,6 +6,7 @@ import random
 import creature
 import math
 from simulation import Simulation
+from population import Population
 
 p.connect(p.GUI)
 p.setAdditionalSearchPath(pybullet_data.getDataPath())
@@ -77,13 +78,15 @@ def create_environment():
 
     return mountain_position
 
-def run_creature_simulation(simulation, cr, iterations=2400):
-    simulation.run_creature(cr, iterations)
+# def run_creature_simulation(simulation, cr, iterations=2400):
+#     simulation.run_creature(cr, iterations)
     
 
 def main():
     #initialize sim
     sim = Simulation()
+
+   
 
     mountain_position = create_environment()
     #generate a random creature
@@ -105,68 +108,73 @@ def main():
     #delay time to let sim initialize cuz it's slow
     time.sleep(1.0)
 
+    sim.run_creature(cr, mountain_position)
+
     while True:
         p.stepSimulation()
 
         #check if creature exist and reaches base of mountain
         if rob1 is not None:
-            pos, _ = p.getBasePositionAndOrientation(rob1)
+            try:
+                pos, _ = p.getBasePositionAndOrientation(rob1)
+            except Exception as e:
+                print(f"Error getting base position and orientation: {e}")
+                continue
+
             
             if pos[2] <= mountain_position[2] + 1.0:
-                update_motors_at_base(rob1, cr)
+                sim.update_motors(rob1, mountain_position)
 
-        apply_movement_logic(rob1, cr)
+        sim.apply_movement_logic(rob1, mountain_position)
+        sim.eval_population(pop)
 
         time.sleep(1.0 / 240)
 
-def update_motors_at_base(rob1, cr):
-    for jid in range(p.getNumJoints(rob1)):
-        # Stop motors or change control strategy
-        p.setJointMotorControl2(rob1, jid, controlMode=p.POSITION_CONTROL, targetVelocity=0.0, force=5)
+
+# def apply_movement_logic(rob1, cr, mountain_position):
+#     pos, _ = p.getBasePositionAndOrientation(rob1)
+#     direction_to_mountain = np.array(mountain_position) - np.array(pos)
+#     dt = 1.0 / 240
+#     timescale = 0.5
+#     del_time = dt / timescale
+#     if del_time > 1.0:
+#         del_time = 1.0
+
+#     # Get current and target velocities
+#     target_linear_velocity = np.array([0.0, 0.0, 0.5])  #target to move up
+#     linear_velocity = np.array(p.getBaseVelocity(rob1)[0])
+#     new_linear_velocity = (1.0 - del_time) * linear_velocity + del_time * target_linear_velocity
 
 
-def apply_movement_logic(rob1, cr):
-    dt = 1.0 / 240
-    timescale = 0.5
-    del_time = dt / timescale
-    if del_time > 1.0:
-        del_time = 1.0
+#     #prevent creature from moving erratically
+#     max_speed = 1.0 
+#     speed = np.linalg.norm(new_linear_velocity)
+#     if speed > max_speed:
+#         new_linear_velocity = new_linear_velocity / speed * max_speed
 
-    # Get current and target velocities
-    target_linear_velocity = np.array([0.0, 0.0, 0.5])  #target to move up
-    linear_velocity = np.array(p.getBaseVelocity(rob1)[0])
-    new_linear_velocity = (1.0 - del_time) * linear_velocity + del_time * target_linear_velocity
+#     # Set new linear velocity
+#     p.resetBaseVelocity(rob1, linearVelocity=new_linear_velocity.tolist())
 
+#       # Calculate and set angular velocity
+#     ground_normal = np.array([0.0, 0.0, 1.0])  #this is vector of flat ground in 3D
+#     tangential_velocity = new_linear_velocity - np.dot(new_linear_velocity, ground_normal) * ground_normal
+#     tangential_speed = np.linalg.norm(tangential_velocity)
+#     MIN_ROLLING_LINEAR_SPEED = 0.01
+#     new_angular_velocity = np.array([0.0, 0.0, 0.0])
+#     if tangential_speed > MIN_ROLLING_LINEAR_SPEED:
+#         roll_axis = np.cross(ground_normal, tangential_velocity)
+#         roll_axis = roll_axis / np.linalg.norm(roll_axis)
+#         angular_speed = tangential_speed / 0.1  #rolling radius
+#         new_angular_velocity = angular_speed * roll_axis
 
-    #prevent creature from moving erratically
-    max_speed = 1.0 
-    speed = np.linalg.norm(new_linear_velocity)
-    if speed > max_speed:
-        new_linear_velocity = new_linear_velocity / speed * max_speed
-
-    # Set new linear velocity
-    p.resetBaseVelocity(rob1, linearVelocity=new_linear_velocity.tolist())
-
-      # Calculate and set angular velocity
-    ground_normal = np.array([0.0, 0.0, 1.0])  #this is vector of flat ground in 3D
-    tangential_velocity = new_linear_velocity - np.dot(new_linear_velocity, ground_normal) * ground_normal
-    tangential_speed = np.linalg.norm(tangential_velocity)
-    MIN_ROLLING_LINEAR_SPEED = 0.01
-    new_angular_velocity = np.array([0.0, 0.0, 0.0])
-    if tangential_speed > MIN_ROLLING_LINEAR_SPEED:
-        roll_axis = np.cross(ground_normal, tangential_velocity)
-        roll_axis = roll_axis / np.linalg.norm(roll_axis)
-        angular_speed = tangential_speed / 0.1  #rolling radius
-        new_angular_velocity = angular_speed * roll_axis
-
-    #prevent from spinning too much
-    max_angular_speed = 2.0 
-    angular_speed = np.linalg.norm(new_angular_velocity)
-    if angular_speed > max_angular_speed:
-        new_angular_velocity = new_angular_velocity / angular_speed * max_angular_speed
+#     #prevent from spinning too much
+#     max_angular_speed = 2.0 
+#     angular_speed = np.linalg.norm(new_angular_velocity)
+#     if angular_speed > max_angular_speed:
+#         new_angular_velocity = new_angular_velocity / angular_speed * max_angular_speed
     
-    # Set new angular velocity
-    p.resetBaseVelocity(rob1, angularVelocity=new_angular_velocity.tolist())
+#     # Set new angular velocity
+#     p.resetBaseVelocity(rob1, angularVelocity=new_angular_velocity.tolist())
 
 
 if __name__ == "__main__":
