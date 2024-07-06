@@ -79,6 +79,7 @@ class Simulation:
                                 physicsClientId=self.physicsClientId)
     
     def apply_movement_logic(self, cid, mountain_position):
+
         pos, _ = p.getBasePositionAndOrientation(cid)
         direction_to_mountain = np.array(mountain_position) - np.array(pos)
 
@@ -117,12 +118,11 @@ class Simulation:
 
         p.resetBaseVelocity(cid, angularVelocity=new_angular_velocity.tolist())
 
-            
 
     # You can add this to the Simulation class:
-    def eval_population(self, pop, iterations=2400):
+    def eval_population(self, pop, iterations):
         for cr in pop.creatures:
-            self.run_creature(cr, pop.mountain_position, iterations) 
+            self.run_creature(cr, iterations) 
 
 
 class ThreadedSim():

@@ -86,8 +86,6 @@ def main():
     #initialize sim
     sim = Simulation()
 
-   
-
     mountain_position = create_environment()
     #generate a random creature
     cr = creature.Creature(gene_count=3)
@@ -126,7 +124,6 @@ def main():
                 sim.update_motors(rob1, mountain_position)
 
         sim.apply_movement_logic(rob1, mountain_position)
-        sim.eval_population(pop)
 
         time.sleep(1.0 / 240)
 
