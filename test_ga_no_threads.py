@@ -13,16 +13,16 @@ import numpy as np
 import csv
 
 class TestGA(unittest.TestCase):
-    def testBasicGA(self, pop_size, gene_count, point_mutate_rate, shrink_mutate_rate, grow_mutate_rate):
+    def testBasicGA(self, pop_size, gene_count, point_mutate, shrink_mutate, grow_mutate):
         pop = population.Population(pop_size=pop_size, 
                                     gene_count=gene_count)
         #sim = simulation.ThreadedSim(pool_size=1)
         sim = simulation.Simulation()
 
         results = []
-        elites = []
+        
 
-        for iteration in range(40):
+        for iteration in range(10):
             # this is a non-threaded version 
             # where we just call run_creature instead
             # of eval_population
@@ -38,8 +38,6 @@ class TestGA(unittest.TestCase):
             print(iteration, "fittest:", np.round(np.max(fits), 3), 
                   "mean:", np.round(np.mean(fits), 3), "mean links", np.round(np.mean(links)), "max links", np.round(np.max(links)))       
             results.append([iteration, np.round(np.max(fits), 3), np.round(np.mean(fits), 3), np.round(np.mean(links)), np.round(np.max(links))])
-
-            
 
             #GA operators
             fit_map = population.Population.get_fitness_map(fits)
@@ -113,17 +111,18 @@ class TestGA(unittest.TestCase):
             writer = csv.writer(file)
             writer.writerow(["Pop Size", "Gene Count", "Point Mutate Rate", "Shrink Mutate Rate", "Grow Mutate Rate", "Iteration", "Max Fitness", "Mean Fitness", "Mean Links", "Max Links"])
 
-            for idx, params in enumerate(experiments):
+            for _, params in enumerate(experiments):
                 results = self.testBasicGA(
                     pop_size=params["pop_size"],
                     gene_count=params["gene_count"],
-                    point_mutate_rate=params["point_mutate_rate"],
-                    shrink_mutate_rate=params["shrink_mutate_rate"],
-                    grow_mutate_rate=params["grow_mutate_rate"]
+                    point_mutate=params["point_mutate_rate"],
+                    shrink_mutate=params["shrink_mutate_rate"],
+                    grow_mutate=params["grow_mutate_rate"]
                 )
                 for result in results:
                     writer.writerow([params["pop_size"], params["gene_count"], params["point_mutate_rate"], params["shrink_mutate_rate"], params["grow_mutate_rate"]] + result)
 
             #cant get creature to climb mountain so cant test duration completed..... 
 
-unittest.main()
+if __name__ == '__main__':
+    unittest.main()

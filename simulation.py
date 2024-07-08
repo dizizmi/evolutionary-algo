@@ -4,6 +4,7 @@ import pybullet_data
 import numpy as np
 from multiprocessing import Pool
 import math
+import creature
 
 class Simulation: 
     def __init__(self, sim_id=0):
@@ -30,8 +31,8 @@ class Simulation:
 
         for step in range(iterations):
             p.stepSimulation(physicsClientId=pid)
-            if step % 24 == 0:
-                self.update_motors(cid, mountain_position)
+           
+            self.update_motors(cid, mountain_position)
 
             self.apply_movement_logic(cid, mountain_position)
 
@@ -49,7 +50,7 @@ class Simulation:
         pos, orn = p.getBasePositionAndOrientation(cid, physicsClientId=self.physicsClientId)
         x, y, z = pos
 
-        direction_to_mountain = np.array(mountain_position) - np.array(pos)  # Calculate direction to mountain
+       
         mountain_center = (mountain_position[0], mountain_position[1])
 
         distance_to_center = np.linalg.norm(np.array([x, y]) - np.array(mountain_center))
@@ -80,8 +81,6 @@ class Simulation:
     
     def apply_movement_logic(self, cid, mountain_position):
 
-        pos, _ = p.getBasePositionAndOrientation(cid)
-        direction_to_mountain = np.array(mountain_position) - np.array(pos)
 
         dt = 1.0 / 240
         timescale = 0.5
@@ -89,7 +88,7 @@ class Simulation:
         if del_time > 1.0:
             del_time = 1.0
 
-        target_linear_velocity = direction_to_mountain / np.linalg.norm(direction_to_mountain) * 0.5  # Move towards the mountain
+        target_linear_velocity = np.array([0.0, 0.0, 0.5])
         linear_velocity = np.array(p.getBaseVelocity(cid)[0])
         new_linear_velocity = (1.0 - del_time) * linear_velocity + del_time * target_linear_velocity
 
@@ -119,7 +118,7 @@ class Simulation:
         p.resetBaseVelocity(cid, angularVelocity=new_angular_velocity.tolist())
 
 
-    # You can add this to the Simulation class:
+   
     def eval_population(self, pop, iterations):
         for cr in pop.creatures:
             self.run_creature(cr, iterations) 

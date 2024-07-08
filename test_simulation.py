@@ -43,7 +43,7 @@ class TestSim(unittest.TestCase):
 
     def testProcNoThread(self):
         #based on graph that reaches max fitness
-        pop = population.Population(pop_size=20, gene_count=4)
+        pop = population.Population(pop_size=100, gene_count=5)
         sim = simulation.Simulation()
         sim.eval_population(pop, 2400)
         dists = [cr.get_distance_travelled() for cr in pop.creatures]
