@@ -78,9 +78,6 @@ def create_environment():
 
     return mountain_position
 
-# def run_creature_simulation(simulation, cr, iterations=2400):
-#     simulation.run_creature(cr, iterations)
-    
 
 def main():
     #initialize sim
@@ -123,56 +120,9 @@ def main():
             if pos[2] <= mountain_position[2] + 1.0:
                 sim.update_motors(rob1, mountain_position)
 
-        sim.apply_movement_logic(rob1, mountain_position)
+            sim.apply_movement_logic(rob1, mountain_position)
 
         time.sleep(1.0 / 240)
-
-
-# def apply_movement_logic(rob1, cr, mountain_position):
-#     pos, _ = p.getBasePositionAndOrientation(rob1)
-#     direction_to_mountain = np.array(mountain_position) - np.array(pos)
-#     dt = 1.0 / 240
-#     timescale = 0.5
-#     del_time = dt / timescale
-#     if del_time > 1.0:
-#         del_time = 1.0
-
-#     # Get current and target velocities
-#     target_linear_velocity = np.array([0.0, 0.0, 0.5])  #target to move up
-#     linear_velocity = np.array(p.getBaseVelocity(rob1)[0])
-#     new_linear_velocity = (1.0 - del_time) * linear_velocity + del_time * target_linear_velocity
-
-
-#     #prevent creature from moving erratically
-#     max_speed = 1.0 
-#     speed = np.linalg.norm(new_linear_velocity)
-#     if speed > max_speed:
-#         new_linear_velocity = new_linear_velocity / speed * max_speed
-
-#     # Set new linear velocity
-#     p.resetBaseVelocity(rob1, linearVelocity=new_linear_velocity.tolist())
-
-#       # Calculate and set angular velocity
-#     ground_normal = np.array([0.0, 0.0, 1.0])  #this is vector of flat ground in 3D
-#     tangential_velocity = new_linear_velocity - np.dot(new_linear_velocity, ground_normal) * ground_normal
-#     tangential_speed = np.linalg.norm(tangential_velocity)
-#     MIN_ROLLING_LINEAR_SPEED = 0.01
-#     new_angular_velocity = np.array([0.0, 0.0, 0.0])
-#     if tangential_speed > MIN_ROLLING_LINEAR_SPEED:
-#         roll_axis = np.cross(ground_normal, tangential_velocity)
-#         roll_axis = roll_axis / np.linalg.norm(roll_axis)
-#         angular_speed = tangential_speed / 0.1  #rolling radius
-#         new_angular_velocity = angular_speed * roll_axis
-
-#     #prevent from spinning too much
-#     max_angular_speed = 2.0 
-#     angular_speed = np.linalg.norm(new_angular_velocity)
-#     if angular_speed > max_angular_speed:
-#         new_angular_velocity = new_angular_velocity / angular_speed * max_angular_speed
-    
-#     # Set new angular velocity
-#     p.resetBaseVelocity(rob1, angularVelocity=new_angular_velocity.tolist())
-
 
 if __name__ == "__main__":
     main()
